@@ -20,3 +20,15 @@ backups/
 playwright-report/
 test-results/
 .neon
+
+# Private production credentials
+.env
+.env.*
+!.env.example
+.local/
+
+# Private environment files
+.env
+.env.*
+!.env.example
+.local/
