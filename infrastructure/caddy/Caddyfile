@@ -1,0 +1,20 @@
+{
+  email {$ACME_EMAIL}
+}
+{$APP_DOMAIN} {
+  encode zstd gzip
+  header Strict-Transport-Security "max-age=31536000"
+  header -Server
+  @api path /api/*
+  handle @api {
+    # /api paths never pass through Next. One trusted proxy hop at the API.
+    reverse_proxy api:4000 {
+      health_uri /api/v1/health/ready
+      health_interval 30s
+      health_timeout 8s
+    }
+  }
+  handle {
+    reverse_proxy web:3000
+  }
+}

@@ -1,0 +1,715 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  LOCKED
+}
+
+enum ProductStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum StockMovementType {
+  INITIAL_STOCK
+  ENTRY
+  WITHDRAWAL
+  CUSTOMER_DELIVERY
+  RETURN
+  DAMAGED
+  ADJUSTMENT
+  CANCELLATION_REVERSAL
+}
+
+enum CustomerType {
+  COMPANY
+  INDIVIDUAL
+}
+
+enum AddressKind {
+  BILLING
+  DELIVERY
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum DeliveryNoteStatus {
+  DRAFT
+  CONFIRMED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CHECK
+  CARD
+  OTHER
+}
+
+enum DocumentType {
+  QUOTE
+  INVOICE
+  DELIVERY_NOTE
+}
+
+model Company {
+  incidents StockIncident[]
+  idempotencyRecords IdempotencyRecord[]
+  mailOutbox MailOutbox[]
+  logoAssetId String?
+  logoAsset FileAsset? @relation("CompanyLogo", fields: [logoAssetId], references: [id])
+  id                      String             @id @default(cuid())
+  slug                    String             @unique
+  name                    String
+  legalName               String?
+  taxIdentificationNumber String?
+  email                   String?
+  phone                   String?
+  address                 String?
+  locale                  String             @default("fr-TN")
+  currency                String             @default("TND")
+  timezone                String             @default("Africa/Tunis")
+  createdAt               DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime           @updatedAt @db.Timestamptz(3)
+  users                   User[]
+  roles                   Role[]
+  categories              ProductCategory[]
+  warehouses              Warehouse[]
+  products                Product[]
+  stockBalances           StockBalance[]
+  stockMovements          StockMovement[]
+  customers               Customer[]
+  addresses               Address[]
+  quotes                  Quote[]
+  invoices                Invoice[]
+  deliveryNotes           DeliveryNote[]
+  payments                Payment[]
+  documentSequences       DocumentSequence[]
+  fileAssets              FileAsset[] @relation("CompanyAssets")
+  auditLogs               AuditLog[]
+  businessSettings        BusinessSettings?
+}
+
+model User {
+  incidentsReported StockIncident[] @relation("IncidentReporter")
+  incidentsResolved StockIncident[] @relation("IncidentResolver")
+  idempotencyRecords IdempotencyRecord[]
+  paymentsCancelled Payment[] @relation("PaymentCancelledBy")
+  id                 String           @id @default(cuid())
+  companyId          String
+  email              String
+  name               String
+  passwordHash       String
+  status             UserStatus       @default(ACTIVE)
+  failedLoginCount   Int              @default(0)
+  lockoutUntil       DateTime? @db.Timestamptz(3)
+  lastLoginAt        DateTime? @db.Timestamptz(3)
+  deactivatedAt      DateTime? @db.Timestamptz(3)
+  createdAt          DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime         @updatedAt @db.Timestamptz(3)
+  company            Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  roles              UserRole[]
+  refreshSessions    RefreshSession[]
+  passwordResetTokens PasswordResetToken[]
+  stockMovements     StockMovement[]
+  quotesCreated      Quote[]          @relation("QuoteCreatedBy")
+  invoicesCreated    Invoice[]        @relation("InvoiceCreatedBy")
+  deliveryNotesMade  DeliveryNote[]   @relation("DeliveryNoteCreatedBy")
+  paymentsReceived   Payment[]        @relation("PaymentReceivedBy")
+  auditLogs          AuditLog[]
+
+  @@unique([companyId, email])
+  @@index([companyId, status])
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  companyId   String
+  code        String
+  name        String
+  description String?
+  createdAt   DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime         @updatedAt @db.Timestamptz(3)
+  company     Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@unique([companyId, code])
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  code        String           @unique
+  description String?
+  roles       RolePermission[]
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model RefreshSession {
+  familyId String @default(uuid())
+  id            String    @id @default(cuid())
+  userId        String
+  tokenHash     String
+  userAgent     String?
+  ipAddress     String?
+  expiresAt     DateTime @db.Timestamptz(3)
+  revokedAt     DateTime? @db.Timestamptz(3)
+  rotatedFromId String? @unique
+  createdAt     DateTime  @default(now()) @db.Timestamptz(3)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([familyId, revokedAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String
+  expiresAt DateTime @db.Timestamptz(3)
+  usedAt    DateTime? @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model ProductCategory {
+  id        String    @id @default(cuid())
+  companyId String
+  name      String
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  products  Product[]
+
+  @@unique([companyId, name])
+  @@index([companyId, active])
+}
+
+model Warehouse {
+  deliveryNotes DeliveryNote[]
+  id             String          @id @default(cuid())
+  companyId      String
+  name           String
+  code           String
+  location       String?
+  active         Boolean         @default(true)
+  createdAt      DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime        @updatedAt @db.Timestamptz(3)
+  company        Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  stockBalances  StockBalance[]
+  stockMovements StockMovement[]
+
+  @@unique([companyId, code])
+}
+
+model Product {
+  imageAssetId String?
+  imageAsset FileAsset? @relation("ProductImage", fields: [imageAssetId], references: [id])
+  id            String              @id @default(cuid())
+  companyId     String
+  categoryId    String?
+  sku           String
+  barcode       String?
+  name          String
+  description   String?
+  unit          String              @default("piece")
+  purchasePrice Decimal             @db.Decimal(14, 3)
+  sellingPrice  Decimal             @db.Decimal(14, 3)
+  taxRate       Decimal             @default(19) @db.Decimal(5, 2)
+  minimumStock  Decimal             @default(0) @db.Decimal(14, 3)
+  location      String?
+  imageUrl      String?
+  status        ProductStatus       @default(ACTIVE)
+  createdAt     DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime            @updatedAt @db.Timestamptz(3)
+  company       Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  category      ProductCategory?    @relation(fields: [categoryId], references: [id])
+  balances      StockBalance[]
+  movements     StockMovement[]
+  quoteLines    QuoteLine[]
+  invoiceLines  InvoiceLine[]
+  deliveryLines DeliveryNoteLine[]
+
+  @@unique([companyId, sku])
+  @@unique([companyId, barcode])
+  @@index([companyId, status])
+  @@index([companyId, name])
+  @@index([companyId, categoryId, status])
+}
+
+model StockBalance {
+  id          String    @id @default(cuid())
+  companyId   String
+  productId   String
+  warehouseId String
+  quantity    Decimal   @default(0) @db.Decimal(14, 3)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, warehouseId])
+  @@index([companyId, quantity])
+}
+
+model StockMovement {
+  requestHash String
+  incidents StockIncident[]
+  id                  String              @id @default(cuid())
+  companyId           String
+  productId           String
+  warehouseId         String
+  userId              String
+  customerId          String?
+  deliveryNoteId      String?
+  reversedMovementId  String? @unique
+  type                StockMovementType
+  quantity            Decimal             @db.Decimal(14, 3)
+  quantityBefore      Decimal             @db.Decimal(14, 3)
+  quantityAfter       Decimal             @db.Decimal(14, 3)
+  note                String?
+  idempotencyKey      String
+  createdAt           DateTime            @default(now()) @db.Timestamptz(3)
+  company             Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  product             Product             @relation(fields: [productId], references: [id])
+  warehouse           Warehouse           @relation(fields: [warehouseId], references: [id])
+  user                User                @relation(fields: [userId], references: [id])
+  customer            Customer?           @relation(fields: [customerId], references: [id])
+  deliveryNote        DeliveryNote?       @relation(fields: [deliveryNoteId], references: [id])
+  reversedMovement    StockMovement?      @relation("MovementReversal", fields: [reversedMovementId], references: [id])
+  reversalMovement    StockMovement?      @relation("MovementReversal")
+
+  @@unique([companyId, idempotencyKey])
+  @@index([companyId, createdAt])
+  @@index([productId, createdAt])
+  @@index([userId, createdAt])
+  @@index([productId, warehouseId, createdAt])
+  @@index([deliveryNoteId])
+}
+
+model Customer {
+  id                      String         @id @default(cuid())
+  companyId               String
+  type                    CustomerType
+  companyName             String?
+  contactName             String
+  taxIdentificationNumber String?
+  email                   String?
+  phone                   String?
+  notes                   String?
+  active                  Boolean        @default(true)
+  createdAt               DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime       @updatedAt @db.Timestamptz(3)
+  company                 Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  addresses               Address[]
+  stockMovements          StockMovement[]
+  quotes                  Quote[]
+  invoices                Invoice[]
+  deliveryNotes           DeliveryNote[]
+  payments                Payment[]
+
+  @@index([companyId, active])
+  @@index([companyId, contactName])
+}
+
+model Address {
+  id         String      @id @default(cuid())
+  companyId  String
+  customerId String
+  kind       AddressKind
+  rawText    String
+  createdAt  DateTime    @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime    @updatedAt @db.Timestamptz(3)
+  company    Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer   Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, kind])
+}
+
+model Quote {
+  deliveryNote DeliveryNote?
+  version Int @default(1)
+  snapshot Json?
+  snapshotHash String?
+  cancelledAt DateTime? @db.Timestamptz(3)
+  cancellationReason String?
+  documentDiscountRate Decimal @default(0) @db.Decimal(5, 2)
+  id             String      @id @default(cuid())
+  companyId      String
+  customerId     String
+  createdById    String
+  number         String?
+  internalRef    String      @unique
+  status         QuoteStatus @default(DRAFT)
+  issueDate      DateTime? @db.Timestamptz(3)
+  expiryDate     DateTime? @db.Timestamptz(3)
+  notes          String?
+  terms          String?
+  subtotal       Decimal     @default(0) @db.Decimal(14, 3)
+  discountAmount Decimal     @default(0) @db.Decimal(14, 3)
+  taxAmount      Decimal     @default(0) @db.Decimal(14, 3)
+  total          Decimal     @default(0) @db.Decimal(14, 3)
+  createdAt      DateTime    @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime    @updatedAt @db.Timestamptz(3)
+  company        Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer       Customer    @relation(fields: [customerId], references: [id])
+  createdBy      User        @relation("QuoteCreatedBy", fields: [createdById], references: [id])
+  lines          QuoteLine[]
+  invoice        Invoice?
+
+  @@unique([companyId, number])
+  @@index([companyId, status, createdAt])
+  @@index([customerId, createdAt])
+}
+
+model QuoteLine {
+  position Int
+  discountAmount Decimal @default(0) @db.Decimal(14, 3)
+  documentDiscountAmount Decimal @default(0) @db.Decimal(14, 3)
+  taxableAmount Decimal @default(0) @db.Decimal(14, 3)
+  id             String   @id @default(cuid())
+  quoteId        String
+  productId      String?
+  description    String
+  quantity       Decimal  @db.Decimal(14, 3)
+  unit           String
+  unitPrice      Decimal  @db.Decimal(14, 3)
+  discountRate   Decimal  @default(0) @db.Decimal(5, 2)
+  taxRate        Decimal  @default(0) @db.Decimal(5, 2)
+  subtotal       Decimal  @db.Decimal(14, 3)
+  taxAmount      Decimal  @db.Decimal(14, 3)
+  total          Decimal  @db.Decimal(14, 3)
+  quote          Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  product        Product? @relation(fields: [productId], references: [id])
+  @@unique([quoteId, position])
+}
+
+model Invoice {
+  version Int @default(1)
+  snapshot Json?
+  snapshotHash String?
+  cancelledAt DateTime? @db.Timestamptz(3)
+  cancellationReason String?
+  documentDiscountRate Decimal @default(0) @db.Decimal(5, 2)
+  id              String        @id @default(cuid())
+  companyId       String
+  customerId      String
+  quoteId         String? @unique
+  deliveryNoteId  String? @unique
+  createdById     String
+  number          String?
+  internalRef     String        @unique
+  status          InvoiceStatus @default(DRAFT)
+  issueDate       DateTime? @db.Timestamptz(3)
+  dueDate         DateTime? @db.Timestamptz(3)
+  notes           String?
+  terms           String?
+  subtotal        Decimal       @default(0) @db.Decimal(14, 3)
+  discountAmount  Decimal       @default(0) @db.Decimal(14, 3)
+  taxAmount       Decimal       @default(0) @db.Decimal(14, 3)
+  total           Decimal       @default(0) @db.Decimal(14, 3)
+  paidAmount      Decimal       @default(0) @db.Decimal(14, 3)
+  remainingAmount Decimal       @default(0) @db.Decimal(14, 3)
+  createdAt       DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime      @updatedAt @db.Timestamptz(3)
+  company         Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer        Customer      @relation(fields: [customerId], references: [id])
+  quote           Quote?        @relation(fields: [quoteId], references: [id])
+  deliveryNote    DeliveryNote? @relation(fields: [deliveryNoteId], references: [id])
+  createdBy       User          @relation("InvoiceCreatedBy", fields: [createdById], references: [id])
+  lines           InvoiceLine[]
+  payments        Payment[]
+
+  @@unique([companyId, number])
+  @@index([companyId, status, createdAt])
+  @@index([customerId, createdAt])
+}
+
+model InvoiceLine {
+  position Int
+  discountAmount Decimal @default(0) @db.Decimal(14, 3)
+  documentDiscountAmount Decimal @default(0) @db.Decimal(14, 3)
+  taxableAmount Decimal @default(0) @db.Decimal(14, 3)
+  id             String   @id @default(cuid())
+  invoiceId      String
+  productId      String?
+  description    String
+  quantity       Decimal  @db.Decimal(14, 3)
+  unit           String
+  unitPrice      Decimal  @db.Decimal(14, 3)
+  discountRate   Decimal  @default(0) @db.Decimal(5, 2)
+  taxRate        Decimal  @default(0) @db.Decimal(5, 2)
+  subtotal       Decimal  @db.Decimal(14, 3)
+  taxAmount      Decimal  @db.Decimal(14, 3)
+  total          Decimal  @db.Decimal(14, 3)
+  invoice        Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product        Product? @relation(fields: [productId], references: [id])
+  @@unique([invoiceId, position])
+}
+
+model DeliveryNote {
+  quoteId String? @unique
+  quote Quote? @relation(fields: [quoteId], references: [id])
+  warehouseId String?
+  warehouse Warehouse? @relation(fields: [warehouseId], references: [id])
+  terms String?
+  version Int @default(1)
+  snapshot Json?
+  snapshotHash String?
+  cancelledAt DateTime? @db.Timestamptz(3)
+  cancellationReason String?
+  documentDiscountRate Decimal @default(0) @db.Decimal(5, 2)
+  id              String             @id @default(cuid())
+  companyId       String
+  customerId      String
+  createdById     String
+  number          String?
+  internalRef     String             @unique
+  status          DeliveryNoteStatus @default(DRAFT)
+  issueDate       DateTime? @db.Timestamptz(3)
+  deliveryDate    DateTime? @db.Timestamptz(3)
+  notes           String?
+  subtotal        Decimal            @default(0) @db.Decimal(14, 3)
+  discountAmount  Decimal            @default(0) @db.Decimal(14, 3)
+  taxAmount       Decimal            @default(0) @db.Decimal(14, 3)
+  total           Decimal            @default(0) @db.Decimal(14, 3)
+  stockDeductedAt DateTime? @db.Timestamptz(3)
+  createdAt       DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime           @updatedAt @db.Timestamptz(3)
+  company         Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer        Customer           @relation(fields: [customerId], references: [id])
+  createdBy       User               @relation("DeliveryNoteCreatedBy", fields: [createdById], references: [id])
+  lines           DeliveryNoteLine[]
+  stockMovements  StockMovement[]
+  invoice         Invoice?
+
+  @@unique([companyId, number])
+  @@index([companyId, status, createdAt])
+  @@index([customerId, createdAt])
+}
+
+model DeliveryNoteLine {
+  position Int
+  discountAmount Decimal @default(0) @db.Decimal(14, 3)
+  documentDiscountAmount Decimal @default(0) @db.Decimal(14, 3)
+  taxableAmount Decimal @default(0) @db.Decimal(14, 3)
+  id             String       @id @default(cuid())
+  deliveryNoteId String
+  productId      String?
+  description    String
+  quantity       Decimal      @db.Decimal(14, 3)
+  unit           String
+  unitPrice      Decimal      @db.Decimal(14, 3)
+  discountRate   Decimal      @default(0) @db.Decimal(5, 2)
+  taxRate        Decimal      @default(0) @db.Decimal(5, 2)
+  subtotal       Decimal      @db.Decimal(14, 3)
+  taxAmount      Decimal      @db.Decimal(14, 3)
+  total          Decimal      @db.Decimal(14, 3)
+  deliveryNote   DeliveryNote @relation(fields: [deliveryNoteId], references: [id], onDelete: Cascade)
+  product        Product?     @relation(fields: [productId], references: [id])
+  @@unique([deliveryNoteId, position])
+}
+
+model Payment {
+  idempotencyKey String
+  cancellationReason String?
+  cancelledById String?
+  cancelledBy User? @relation("PaymentCancelledBy", fields: [cancelledById], references: [id])
+  @@unique([companyId, idempotencyKey])
+  id           String        @id @default(cuid())
+  companyId    String
+  customerId   String
+  invoiceId    String
+  receivedById String
+  amount       Decimal       @db.Decimal(14, 3)
+  method       PaymentMethod
+  reference    String?
+  paidAt       DateTime      @default(now()) @db.Timestamptz(3)
+  notes        String?
+  cancelledAt  DateTime? @db.Timestamptz(3)
+  createdAt    DateTime      @default(now()) @db.Timestamptz(3)
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  invoice      Invoice       @relation(fields: [invoiceId], references: [id])
+  receivedBy   User          @relation("PaymentReceivedBy", fields: [receivedById], references: [id])
+
+  @@index([companyId, paidAt])
+  @@index([invoiceId])
+}
+
+model DocumentSequence {
+  id           String       @id @default(cuid())
+  companyId    String
+  documentType DocumentType
+  year         Int
+  prefix       String
+  nextNumber   Int          @default(1)
+  updatedAt    DateTime     @updatedAt @db.Timestamptz(3)
+  company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, documentType, year])
+}
+
+model FileAsset {
+  logoForCompanies Company[] @relation("CompanyLogo")
+  productImages Product[] @relation("ProductImage")
+  snapshotHash String?
+  @@unique([companyId, entityType, entityId, snapshotHash])
+  id          String   @id @default(cuid())
+  companyId   String
+  entityType  String?
+  entityId    String?
+  storageKey  String @unique
+  filename    String
+  mimeType    String
+  sizeBytes   Int
+  checksum    String?
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  company     Company  @relation("CompanyAssets", fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, entityType, entityId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  companyId  String
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String?
+  requestId  String?
+  ipAddress  String?
+  before     Json?
+  after      Json?
+  reason     String?
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  actor      User?    @relation(fields: [actorId], references: [id])
+
+  @@index([companyId, createdAt])
+  @@index([companyId, entityType, entityId])
+}
+
+model BusinessSettings {
+  taxRates Json @default("[\"0\",\"7\",\"13\",\"19\"]")
+  id                         String   @id @default(cuid())
+  companyId                  String   @unique
+  allowNegativeStock         Boolean  @default(false)
+  quotePrefix                String   @default("DEV")
+  invoicePrefix              String   @default("FAC")
+  deliveryNotePrefix         String   @default("BL")
+  defaultTaxRate             Decimal  @default(19) @db.Decimal(5, 2)
+  documentDiscountEnabled    Boolean  @default(false)
+  paymentTerms               String   @default("Paiement a reception de la facture.")
+  footerText                 String   @default("Generated by AS TINO DEV")
+  updatedAt                  DateTime @updatedAt @db.Timestamptz(3)
+  company                    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model IdempotencyRecord {
+  id String @id @default(cuid())
+  companyId String
+  actorId String
+  key String
+  scope String
+  requestHash String
+  response Json
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  company Company @relation(fields: [companyId], references: [id])
+  actor User @relation(fields: [actorId], references: [id])
+  @@unique([companyId, key])
+  @@index([companyId, createdAt])
+}
+
+enum IncidentStatus {
+  OPEN
+  RESOLVED
+}
+model StockIncident {
+  id String @id @default(cuid())
+  companyId String
+  movementId String
+  reportedById String
+  resolvedById String?
+  description String
+  status IncidentStatus @default(OPEN)
+  resolution String?
+  idempotencyKey String
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  resolvedAt DateTime? @db.Timestamptz(3)
+  company Company @relation(fields: [companyId], references: [id])
+  movement StockMovement @relation(fields: [movementId], references: [id])
+  reportedBy User @relation("IncidentReporter", fields: [reportedById], references: [id])
+  resolvedBy User? @relation("IncidentResolver", fields: [resolvedById], references: [id])
+  @@unique([companyId, idempotencyKey])
+  @@index([companyId, status, createdAt])
+}
+
+enum MailStatus {
+  PENDING
+  SENDING
+  SENT
+  FAILED
+}
+model MailOutbox {
+  id String @id @default(cuid())
+  companyId String
+  documentType DocumentType
+  documentId String
+  recipient String
+  status MailStatus @default(PENDING)
+  attempts Int @default(0)
+  nextAttemptAt DateTime @default(now()) @db.Timestamptz(3)
+  lockedUntil DateTime? @db.Timestamptz(3)
+  lastError String?
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  sentAt DateTime? @db.Timestamptz(3)
+  company Company @relation(fields: [companyId], references: [id])
+  @@index([status, nextAttemptAt])
+  @@index([companyId, documentType, documentId])
+}

@@ -1,0 +1,57 @@
+name: Quality gates
+on: [push, pull_request]
+permissions: {contents: read}
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require reviewed dependency resolution
+        run: test -f pnpm-lock.yaml || { echo "Resolve and commit pnpm-lock.yaml on a network-enabled machine first."; exit 1; }
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm install --global pnpm@10.28.2
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm setup:env
+      - name: Install Chromium for PDF and browser tests
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(node --input-type=module -e "import {chromium} from '@playwright/test'; console.log(chromium.executablePath())")" >> "$GITHUB_ENV"
+          # Isolated disposable CI only; production keeps the browser sandbox on.
+          echo "PDF_DISABLE_SANDBOX=true" >> "$GITHUB_ENV"
+      - name: Start isolated dependencies
+        run: |
+          docker compose --profile test up -d --build --wait postgres postgres-test redis minio mailpit
+          docker compose run --rm storage-init
+      - name: Validate and generate database client
+        run: pnpm db:validate && pnpm db:generate
+      - run: pnpm build
+      - run: pnpm lint && pnpm typecheck
+      - run: pnpm test:unit && pnpm test:offline
+      - name: PostgreSQL migration and real API integration tests
+        run: pnpm test:integration
+      - name: Browser end-to-end tests against seeded isolated database
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          pnpm test:e2e:prepare
+          pnpm test:e2e
+      - name: Check production Docker builds
+        run: |
+          docker build -f apps/api/Dockerfile -t as-tino-stock-api:ci .
+          docker build -f apps/web/Dockerfile -t as-tino-stock-web:ci .
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-results
+          path: |
+            playwright-report/
+            test-results/
+            docs/qa/
+          retention-days: 7
+      - name: Stop isolated test services
+        if: always()
+        run: docker compose --profile test down --remove-orphans

@@ -1,0 +1,111 @@
+name: as-tino-production
+x-api: &api
+  image: as-tino-stock-api:${APP_VERSION:-local}
+  build: {context: ., dockerfile: apps/api/Dockerfile}
+  env_file: .env.production
+  environment:
+    NODE_ENV: production
+    DATABASE_URL: postgresql://as_tino_app:${APP_DATABASE_PASSWORD:?Set a random URL-safe password}@postgres:5432/${POSTGRES_DB:-as_tino_stock}?schema=public
+    REDIS_URL: redis://:${REDIS_PASSWORD:?Set a random URL-safe password}@redis:6379/0
+    API_PORT: "4000"
+    API_HOST: 0.0.0.0
+    API_INTERNAL_URL: http://api:4000
+    TRUST_PROXY_HOPS: "1"
+    SWAGGER_ENABLED: "false"
+services:
+  postgres:
+    image: postgres:18-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?Set migration owner}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set database owner secret}
+      POSTGRES_DB: ${POSTGRES_DB:-as_tino_stock}
+      APP_DATABASE_PASSWORD: ${APP_DATABASE_PASSWORD:?Set runtime role secret}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./infrastructure/postgres/runtime-role.sh:/opt/runtime-role.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:8
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set Redis secret}
+    command:
+      - sh
+      - -ec
+      - exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"
+    volumes: ["redis_data:/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=$$REDIS_PASSWORD redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  migrate:
+    <<: *api
+    profiles: ["tools"]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:?}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-as_tino_stock}?schema=public
+    command: ["pnpm", "db:deploy"]
+    healthcheck: {disable: true}
+    depends_on:
+      postgres: {condition: service_healthy}
+  bootstrap:
+    <<: *api
+    profiles: ["tools"]
+    command: ["pnpm", "db:bootstrap"]
+    environment:
+      NODE_ENV: production
+      SEED_IDENTITY_ONLY: "true"
+      DATABASE_URL: postgresql://${POSTGRES_USER:?}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-as_tino_stock}?schema=public
+    healthcheck: {disable: true}
+    depends_on:
+      postgres: {condition: service_healthy}
+  api:
+    <<: *api
+    init: true
+    restart: unless-stopped
+    shm_size: 256mb
+    # Keep Chromium sandbox enabled. Validate user namespace support on the VPS.
+    # Do NOT add privileged:true or --no-sandbox as a routine deployment fix.
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+  web:
+    image: as-tino-stock-web:${APP_VERSION:-local}
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args: {API_INTERNAL_URL: "http://api:4000"}
+    init: true
+    restart: unless-stopped
+    environment: {NODE_ENV: production, HOSTNAME: 0.0.0.0, PORT: "3000"}
+    depends_on:
+      api: {condition: service_healthy}
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Set the public DNS name}
+      ACME_EMAIL: ${ACME_EMAIL:?Set the certificate contact}
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes:
+      - ./infrastructure/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      web: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:2019/config/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+volumes:
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:

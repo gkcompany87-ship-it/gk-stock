@@ -1,0 +1,75 @@
+[
+  {
+    "file": "devis.pdf",
+    "pages": 1,
+    "checks": [
+      {
+        "page": 1,
+        "width": 595.9199829101562,
+        "height": 842.8800048828125,
+        "text_characters": 1418,
+        "footer_present": true
+      }
+    ]
+  },
+  {
+    "file": "facture.pdf",
+    "pages": 1,
+    "checks": [
+      {
+        "page": 1,
+        "width": 595.9199829101562,
+        "height": 842.8800048828125,
+        "text_characters": 1550,
+        "footer_present": true
+      }
+    ]
+  },
+  {
+    "file": "livraison.pdf",
+    "pages": 1,
+    "checks": [
+      {
+        "page": 1,
+        "width": 595.9199829101562,
+        "height": 842.8800048828125,
+        "text_characters": 1423,
+        "footer_present": true
+      }
+    ]
+  },
+  {
+    "file": "multipage.pdf",
+    "pages": 4,
+    "checks": [
+      {
+        "page": 1,
+        "width": 595.9199829101562,
+        "height": 842.8800048828125,
+        "text_characters": 1625,
+        "footer_present": true
+      },
+      {
+        "page": 2,
+        "width": 595.9199829101562,
+        "height": 842.8800048828125,
+        "text_characters": 1648,
+        "footer_present": true
+      },
+      {
+        "page": 3,
+        "width": 595.9199829101562,
+        "height": 842.8800048828125,
+        "text_characters": 1636,
+        "footer_present": true
+      },
+      {
+        "page": 4,
+        "width": 595.9199829101562,
+        "height": 842.8800048828125,
+        "text_characters": 1085,
+        "footer_present": true
+      }
+    ]
+  }
+]

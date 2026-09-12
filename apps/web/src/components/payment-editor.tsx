@@ -1,0 +1,19 @@
+"use client";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { positiveQuantitySchema, scaled } from "@as-tino/shared";
+import { Button } from "@as-tino/ui";
+import { useAction } from "../lib/hooks";
+import type { CommercialDocument } from "../lib/types";
+import { customerName, money } from "../lib/format";
+import { useFeedback } from "../providers/feedback-provider";
+import { SearchSelect } from "./search-select";
+import { Modal } from "./modal";
+import { FormField, FormError } from "./form-field";
+import { statusText } from "./status-label";
+const methods=["CASH","BANK_TRANSFER","CHECK","CARD","OTHER"] as const;
+const schema=z.object({amount:positiveQuantitySchema,method:z.enum(methods),reference:z.string().max(250),notes:z.string().max(2000),paidDate:z.string()});
+export function PaymentEditor({invoice:initial,onClose}:{invoice?:CommercialDocument;onClose:()=>void}){const[invoice,setInvoice]=useState<CommercialDocument|null>(initial??null);const action=useAction();const{confirm}=useFeedback();const{register,handleSubmit,setValue,formState:{errors}}=useForm<z.infer<typeof schema>>({resolver:zodResolver(schema),defaultValues:{amount:initial?.remainingAmount??"",method:"CASH",reference:"",notes:"",paidDate:""}});const allowed=!!invoice&&!['DRAFT','CANCELLED','PAID'].includes(invoice.status)&&scaled(invoice.remainingAmount??"0")>0n;
+return <Modal open onClose={()=>{if(!action.busy)onClose();}} title="Enregistrer un paiement" description="Le solde et le statut de la facture sont mis à jour dans la même transaction."><form onSubmit={handleSubmit(async values=>{if(!invoice||!allowed)return;if(!await confirm(`Confirmer le paiement de ${money(values.amount)} pour ${invoice.number} ?`))return;const result=await action.run("/payments",{invoiceId:invoice.id,amount:values.amount,method:values.method,reference:values.reference||undefined,notes:values.notes||undefined,paidAt:values.paidDate?`${values.paidDate}T00:00:00+01:00`:undefined},{bodyKey:true,message:"Paiement enregistré, solde actualisé."});if(result)onClose();})}><div className="grid gap-4">{!initial&&<SearchSelect<CommercialDocument> label="Facture" path="/invoices" required value={invoice?.id??""} selectedLabel={invoice?`${invoice.number??invoice.internalRef} - ${customerName(invoice.customer)}`:""} display={i=>`${i.number??"Brouillon"} - ${customerName(i.customer)} - ${statusText(i.status)}`} onChange={i=>{setInvoice(i);setValue("amount",i?.remainingAmount??"");}}/>}{invoice&&<div className="rounded-lg bg-teal-50 p-4"><strong>{invoice.number??"Brouillon"}</strong><p className="text-sm">{customerName(invoice.customer)}</p><p className="mt-2 text-teal-800">Solde restant : <strong>{money(invoice.remainingAmount)}</strong></p>{!allowed&&<p className="mt-2 text-sm text-red-700">Cette facture ne peut pas recevoir de paiement.</p>}</div>}<FormField label="Montant reçu (TND) *" error={errors.amount?.message}><input inputMode="decimal" {...register("amount")} aria-invalid={!!errors.amount}/></FormField><FormField label="Mode de paiement"><select {...register("method")}>{methods.map(m=><option key={m} value={m}>{statusText(m)}</option>)}</select></FormField><FormField label="Référence"><input {...register("reference")}/></FormField><FormField label="Date du paiement (vide = maintenant)"><input type="date" {...register("paidDate")}/></FormField><FormField label="Notes"><textarea rows={2} {...register("notes")}/></FormField></div><FormError error={action.error}/><div className="form-actions"><Button type="button" variant="secondary" onClick={onClose} disabled={action.busy}>Annuler</Button><Button type="submit" disabled={action.busy||!allowed}>Enregistrer le paiement</Button></div></form></Modal>}

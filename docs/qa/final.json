@@ -1,0 +1,41 @@
+{
+  "phase": "final",
+  "node": "v22.16.0",
+  "outcomes": [
+    {
+      "command": "pnpm lint",
+      "status": "BLOCKED: executable unavailable",
+      "exitCode": null
+    },
+    {
+      "command": "pnpm typecheck",
+      "status": "BLOCKED: executable unavailable",
+      "exitCode": null
+    },
+    {
+      "command": "pnpm test:unit",
+      "status": "BLOCKED: executable unavailable",
+      "exitCode": null
+    },
+    {
+      "command": "pnpm db:validate",
+      "status": "BLOCKED: executable unavailable",
+      "exitCode": null
+    },
+    {
+      "command": "pnpm test:integration",
+      "status": "BLOCKED: executable unavailable",
+      "exitCode": null
+    },
+    {
+      "command": "pnpm build",
+      "status": "BLOCKED: executable unavailable",
+      "exitCode": null
+    },
+    {
+      "command": "pnpm test:e2e",
+      "status": "BLOCKED: executable unavailable",
+      "exitCode": null
+    }
+  ]
+}

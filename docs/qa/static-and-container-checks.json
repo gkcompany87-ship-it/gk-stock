@@ -1,0 +1,54 @@
+[
+  {
+    "file": "docker-compose.yml",
+    "check": "YAML parse",
+    "status": "PASS"
+  },
+  {
+    "file": "docker-compose.production.yml",
+    "check": "YAML parse",
+    "status": "PASS"
+  },
+  {
+    "file": ".github/workflows/ci.yml",
+    "check": "YAML parse",
+    "status": "PASS"
+  },
+  {
+    "file": "pnpm-workspace.yaml",
+    "check": "YAML parse",
+    "status": "PASS"
+  },
+  {
+    "file": "scripts/restore-postgres.sh",
+    "check": "POSIX shell syntax",
+    "status": "PASS",
+    "details": ""
+  },
+  {
+    "file": "scripts/backup-postgres.sh",
+    "check": "POSIX shell syntax",
+    "status": "PASS",
+    "details": ""
+  },
+  {
+    "check": "Workspace package JSON parse",
+    "status": "PASS"
+  },
+  {
+    "check": "docker compose config",
+    "status": "BLOCKED",
+    "details": "Docker executable/daemon unavailable in this environment."
+  },
+  {
+    "check": "docker compose ps",
+    "status": "BLOCKED",
+    "details": "Docker executable/daemon unavailable in this environment."
+  },
+  {
+    "file": "infrastructure/postgres/runtime-role.sh",
+    "check": "POSIX shell syntax",
+    "status": "PASS",
+    "details": ""
+  }
+]

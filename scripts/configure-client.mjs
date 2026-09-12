@@ -1,0 +1,13 @@
+import { randomBytes } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, chmodSync } from "node:fs";
+import { resolve } from "node:path";
+const args=process.argv.slice(2);const value=(name)=>{const i=args.indexOf(name);return i>=0?args[i+1]:undefined;};
+const root=process.cwd();const envPath=resolve(root,".env");if(!existsSync(envPath))throw new Error(".env is missing. Run pnpm setup:env first.");
+const adminEmail=value("--admin-email")?.trim().toLowerCase();if(!adminEmail||!adminEmail.includes("@")||/example|localhost|astino\.example/i.test(adminEmail))throw new Error("Pass a real administrator email with --admin-email.");
+const adminName=value("--admin-name")?.trim()||"Administrateur G&K";const companyName=value("--company-name")?.trim()||"STE G&K DE COMMERCE";const legalName=value("--legal-name")?.trim()||companyName;const slug=value("--slug")?.trim()||"ste-gk-de-commerce";
+const password=randomBytes(32).toString("base64url");let text=readFileSync(envPath,"utf8");
+const set=(key,val)=>{const escaped=String(val).replaceAll("\\","\\\\").replaceAll('"','\\"');const line=`${key}="${escaped}"`;const re=new RegExp(`^${key}=.*$`,`m`);text=re.test(text)?text.replace(re,line):`${text.trimEnd()}\n${line}\n`;};
+set("APP_NAME","G&K Stock");set("COMPANY_NAME",companyName);set("COMPANY_LEGAL_NAME",legalName);set("COMPANY_SLUG",slug);set("SEED_ADMIN_EMAIL",adminEmail);set("SEED_ADMIN_NAME",adminName);set("SEED_ADMIN_PASSWORD",password);set("SEED_IDENTITY_ONLY","true");
+text=text.replace(/^SEED_WORKER_EMAIL=.*\n?/m,"").replace(/^SEED_WORKER_PASSWORD=.*\n?/m,"");writeFileSync(envPath,text,{mode:0o600});chmodSync(envPath,0o600);
+const local=resolve(root,".local");mkdirSync(local,{recursive:true,mode:0o700});const credentialPath=resolve(local,`bootstrap-credentials-${Date.now()}.txt`);writeFileSync(credentialPath,`Company: ${companyName}\nAdmin: ${adminEmail}\nPassword: ${password}\n\nChange this password after first login. Delete this file afterward.\n`,{mode:0o600});
+console.log(`Client identity configured in .env. Bootstrap credential written privately to: ${credentialPath}`);console.log("The password was intentionally not printed to the terminal.");console.log(`View it locally with: cat "${credentialPath}"`);console.log("Do not paste the password into chat, logs or source control.");

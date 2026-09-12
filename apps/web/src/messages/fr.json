@@ -1,0 +1,11 @@
+{
+  "app": {
+    "name": "G&K Stock",
+    "brand": "STE G&K DE COMMERCE",
+    "workspace": "Gestion de stock et documents commerciaux",
+    "logout": "Se déconnecter",
+    "offline": "Hors ligne : une connexion est requise pour confirmer une opération.",
+    "accessDenied": "Accès non autorisé",
+    "accessDescription": "Votre compte ne dispose pas des autorisations pour consulter cet espace."
+  }
+}

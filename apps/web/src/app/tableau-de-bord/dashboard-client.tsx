@@ -1,0 +1,12 @@
+"use client";
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@as-tino/ui";
+import { ScanLine } from "lucide-react";
+import { apiFetch } from "../../lib/api";
+import type { Dashboard, StockMovement } from "../../lib/types";
+import { useAuth } from "../../providers/auth-provider";
+import { DashboardView, RecentMovements } from "../../components/dashboard-view";
+import { LoadingState, ErrorState } from "../../components/data-state";
+import { PageHeader } from "../../components/page-header";
+export function DashboardClient(){const{can,user}=useAuth();const admin=can("report:read")&&can("financial:read");const query=useQuery({queryKey:["/reports/dashboard"],queryFn:()=>apiFetch<Dashboard>("/reports/dashboard"),enabled:admin});const worker=useQuery({queryKey:["/reports/worker"],queryFn:()=>apiFetch<{todayOperations:number;recentMovements:StockMovement[]}>("/reports/worker"),enabled:!admin});return <><PageHeader title={`Bonjour, ${user?.name.split(" ")[0]??""}`} description={admin?"L'essentiel de votre activité. Mouvements et paiements des 30 derniers jours.":"Votre espace terrain : trouver un produit, enregistrer un retrait, suivre vos opérations."} action={admin?<Link href="/rapports" className="quiet-button">Personnaliser les rapports →</Link>:null}/>{admin?(query.isPending?<LoadingState/>:query.error?<div><ErrorState message={query.error.message}/><Button className="mt-3" onClick={()=>void query.refetch()}>Réessayer</Button></div>:<DashboardView data={query.data}/>):<><section className="hero-scan"><div><h2>Prêt pour le prochain retrait ?</h2><p>Scannez le code d'un produit. Le stock est vérifié à la confirmation, sans double enregistrement.</p></div><Link href="/scanner" className="flex items-center gap-2"><ScanLine size={20}/>Scanner un produit</Link></section><div className="mb-6 flex flex-wrap gap-4"><div className="stat-card min-w-52"><h2>Vos opérations aujourd'hui</h2><div className="stat-value">{worker.data?.todayOperations??"—"}</div><small>Heure de Tunis</small></div><Link href="/produits" className="panel flex items-center text-sm font-semibold text-teal-700">Rechercher manuellement dans le catalogue →</Link></div>{worker.isPending?<LoadingState/>:worker.error?<ErrorState message={worker.error.message}/>:<section className="panel"><h2>Vos dernières opérations</h2><RecentMovements items={worker.data.recentMovements}/></section>}</>}</>}

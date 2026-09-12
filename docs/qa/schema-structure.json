@@ -1,0 +1,3575 @@
+{
+  "enums": {
+    "UserStatus": [
+      "ACTIVE",
+      "INACTIVE",
+      "LOCKED"
+    ],
+    "ProductStatus": [
+      "ACTIVE",
+      "ARCHIVED"
+    ],
+    "StockMovementType": [
+      "INITIAL_STOCK",
+      "ENTRY",
+      "WITHDRAWAL",
+      "CUSTOMER_DELIVERY",
+      "RETURN",
+      "DAMAGED",
+      "ADJUSTMENT",
+      "CANCELLATION_REVERSAL"
+    ],
+    "CustomerType": [
+      "COMPANY",
+      "INDIVIDUAL"
+    ],
+    "AddressKind": [
+      "BILLING",
+      "DELIVERY"
+    ],
+    "QuoteStatus": [
+      "DRAFT",
+      "SENT",
+      "ACCEPTED",
+      "REJECTED",
+      "EXPIRED",
+      "CANCELLED"
+    ],
+    "InvoiceStatus": [
+      "DRAFT",
+      "ISSUED",
+      "PARTIALLY_PAID",
+      "PAID",
+      "OVERDUE",
+      "CANCELLED"
+    ],
+    "DeliveryNoteStatus": [
+      "DRAFT",
+      "CONFIRMED",
+      "DELIVERED",
+      "CANCELLED"
+    ],
+    "PaymentMethod": [
+      "CASH",
+      "BANK_TRANSFER",
+      "CHECK",
+      "CARD",
+      "OTHER"
+    ],
+    "DocumentType": [
+      "QUOTE",
+      "INVOICE",
+      "DELIVERY_NOTE"
+    ],
+    "IncidentStatus": [
+      "OPEN",
+      "RESOLVED"
+    ],
+    "MailStatus": [
+      "PENDING",
+      "SENDING",
+      "SENT",
+      "FAILED"
+    ]
+  },
+  "models": {
+    "Company": {
+      "fields": [
+        {
+          "name": "incidents",
+          "type": "StockIncident",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "idempotencyRecords",
+          "type": "IdempotencyRecord",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "mailOutbox",
+          "type": "MailOutbox",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "logoAssetId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "logoAsset",
+          "type": "FileAsset",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(\"CompanyLogo\", fields: [logoAssetId], references: [id])"
+        },
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "slug",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@unique"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "legalName",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "taxIdentificationNumber",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "email",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "phone",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "address",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "locale",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(\"fr-TN\")"
+        },
+        {
+          "name": "currency",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(\"TND\")"
+        },
+        {
+          "name": "timezone",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(\"Africa/Tunis\")"
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@updatedAt @db.Timestamptz(3)"
+        },
+        {
+          "name": "users",
+          "type": "User",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "roles",
+          "type": "Role",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "categories",
+          "type": "ProductCategory",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "warehouses",
+          "type": "Warehouse",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "products",
+          "type": "Product",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "stockBalances",
+          "type": "StockBalance",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "stockMovements",
+          "type": "StockMovement",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "customers",
+          "type": "Customer",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "addresses",
+          "type": "Address",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "quotes",
+          "type": "Quote",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "invoices",
+          "type": "Invoice",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "deliveryNotes",
+          "type": "DeliveryNote",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "payments",
+          "type": "Payment",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "documentSequences",
+          "type": "DocumentSequence",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "fileAssets",
+          "type": "FileAsset",
+          "optional": false,
+          "array": true,
+          "attrs": "@relation(\"CompanyAssets\")"
+        },
+        {
+          "name": "auditLogs",
+          "type": "AuditLog",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "businessSettings",
+          "type": "BusinessSettings",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        }
+      ],
+      "constraints": []
+    },
+    "User": {
+      "fields": [
+        {
+          "name": "incidentsReported",
+          "type": "StockIncident",
+          "optional": false,
+          "array": true,
+          "attrs": "@relation(\"IncidentReporter\")"
+        },
+        {
+          "name": "incidentsResolved",
+          "type": "StockIncident",
+          "optional": false,
+          "array": true,
+          "attrs": "@relation(\"IncidentResolver\")"
+        },
+        {
+          "name": "idempotencyRecords",
+          "type": "IdempotencyRecord",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "paymentsCancelled",
+          "type": "Payment",
+          "optional": false,
+          "array": true,
+          "attrs": "@relation(\"PaymentCancelledBy\")"
+        },
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "email",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "passwordHash",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "status",
+          "type": "UserStatus",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(ACTIVE)"
+        },
+        {
+          "name": "failedLoginCount",
+          "type": "Int",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0)"
+        },
+        {
+          "name": "lockoutUntil",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "lastLoginAt",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "deactivatedAt",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@updatedAt @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "roles",
+          "type": "UserRole",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "refreshSessions",
+          "type": "RefreshSession",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "passwordResetTokens",
+          "type": "PasswordResetToken",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "stockMovements",
+          "type": "StockMovement",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "quotesCreated",
+          "type": "Quote",
+          "optional": false,
+          "array": true,
+          "attrs": "@relation(\"QuoteCreatedBy\")"
+        },
+        {
+          "name": "invoicesCreated",
+          "type": "Invoice",
+          "optional": false,
+          "array": true,
+          "attrs": "@relation(\"InvoiceCreatedBy\")"
+        },
+        {
+          "name": "deliveryNotesMade",
+          "type": "DeliveryNote",
+          "optional": false,
+          "array": true,
+          "attrs": "@relation(\"DeliveryNoteCreatedBy\")"
+        },
+        {
+          "name": "paymentsReceived",
+          "type": "Payment",
+          "optional": false,
+          "array": true,
+          "attrs": "@relation(\"PaymentReceivedBy\")"
+        },
+        {
+          "name": "auditLogs",
+          "type": "AuditLog",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        }
+      ],
+      "constraints": [
+        "@@unique([companyId, email])",
+        "@@index([companyId, status])"
+      ]
+    },
+    "Role": {
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "code",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@updatedAt @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "users",
+          "type": "UserRole",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "permissions",
+          "type": "RolePermission",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        }
+      ],
+      "constraints": [
+        "@@unique([companyId, code])"
+      ]
+    },
+    "Permission": {
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "code",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@unique"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "roles",
+          "type": "RolePermission",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        }
+      ],
+      "constraints": []
+    },
+    "UserRole": {
+      "fields": [
+        {
+          "name": "userId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "roleId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "user",
+          "type": "User",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [userId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "role",
+          "type": "Role",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [roleId], references: [id], onDelete: Cascade)"
+        }
+      ],
+      "constraints": [
+        "@@id([userId, roleId])"
+      ]
+    },
+    "RolePermission": {
+      "fields": [
+        {
+          "name": "roleId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "permissionId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "role",
+          "type": "Role",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [roleId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "permission",
+          "type": "Permission",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [permissionId], references: [id], onDelete: Cascade)"
+        }
+      ],
+      "constraints": [
+        "@@id([roleId, permissionId])"
+      ]
+    },
+    "RefreshSession": {
+      "fields": [
+        {
+          "name": "familyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(uuid())"
+        },
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "userId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "tokenHash",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "userAgent",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "ipAddress",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "expiresAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "revokedAt",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "rotatedFromId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": "@unique"
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "user",
+          "type": "User",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [userId], references: [id], onDelete: Cascade)"
+        }
+      ],
+      "constraints": [
+        "@@index([userId, expiresAt])",
+        "@@index([familyId, revokedAt])"
+      ]
+    },
+    "PasswordResetToken": {
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "userId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "tokenHash",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "expiresAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "usedAt",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "user",
+          "type": "User",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [userId], references: [id], onDelete: Cascade)"
+        }
+      ],
+      "constraints": [
+        "@@index([userId, expiresAt])"
+      ]
+    },
+    "ProductCategory": {
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "active",
+          "type": "Boolean",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(true)"
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@updatedAt @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "products",
+          "type": "Product",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        }
+      ],
+      "constraints": [
+        "@@unique([companyId, name])",
+        "@@index([companyId, active])"
+      ]
+    },
+    "Warehouse": {
+      "fields": [
+        {
+          "name": "deliveryNotes",
+          "type": "DeliveryNote",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "code",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "location",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "active",
+          "type": "Boolean",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(true)"
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@updatedAt @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "stockBalances",
+          "type": "StockBalance",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "stockMovements",
+          "type": "StockMovement",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        }
+      ],
+      "constraints": [
+        "@@unique([companyId, code])"
+      ]
+    },
+    "Product": {
+      "fields": [
+        {
+          "name": "imageAssetId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "imageAsset",
+          "type": "FileAsset",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(\"ProductImage\", fields: [imageAssetId], references: [id])"
+        },
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "categoryId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "sku",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "barcode",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "unit",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(\"piece\")"
+        },
+        {
+          "name": "purchasePrice",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "sellingPrice",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "taxRate",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(19) @db.Decimal(5, 2)"
+        },
+        {
+          "name": "minimumStock",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "location",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "imageUrl",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "status",
+          "type": "ProductStatus",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(ACTIVE)"
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@updatedAt @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "category",
+          "type": "ProductCategory",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(fields: [categoryId], references: [id])"
+        },
+        {
+          "name": "balances",
+          "type": "StockBalance",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "movements",
+          "type": "StockMovement",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "quoteLines",
+          "type": "QuoteLine",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "invoiceLines",
+          "type": "InvoiceLine",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "deliveryLines",
+          "type": "DeliveryNoteLine",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        }
+      ],
+      "constraints": [
+        "@@unique([companyId, sku])",
+        "@@unique([companyId, barcode])",
+        "@@index([companyId, status])",
+        "@@index([companyId, name])",
+        "@@index([companyId, categoryId, status])"
+      ]
+    },
+    "StockBalance": {
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "productId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "warehouseId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "quantity",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@updatedAt @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "product",
+          "type": "Product",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [productId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "warehouse",
+          "type": "Warehouse",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [warehouseId], references: [id], onDelete: Cascade)"
+        }
+      ],
+      "constraints": [
+        "@@unique([productId, warehouseId])",
+        "@@index([companyId, quantity])"
+      ]
+    },
+    "StockMovement": {
+      "fields": [
+        {
+          "name": "requestHash",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "incidents",
+          "type": "StockIncident",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "productId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "warehouseId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "userId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "customerId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "deliveryNoteId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "reversedMovementId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": "@unique"
+        },
+        {
+          "name": "type",
+          "type": "StockMovementType",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "quantity",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "quantityBefore",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "quantityAfter",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "note",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "idempotencyKey",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "product",
+          "type": "Product",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [productId], references: [id])"
+        },
+        {
+          "name": "warehouse",
+          "type": "Warehouse",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [warehouseId], references: [id])"
+        },
+        {
+          "name": "user",
+          "type": "User",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [userId], references: [id])"
+        },
+        {
+          "name": "customer",
+          "type": "Customer",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(fields: [customerId], references: [id])"
+        },
+        {
+          "name": "deliveryNote",
+          "type": "DeliveryNote",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(fields: [deliveryNoteId], references: [id])"
+        },
+        {
+          "name": "reversedMovement",
+          "type": "StockMovement",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(\"MovementReversal\", fields: [reversedMovementId], references: [id])"
+        },
+        {
+          "name": "reversalMovement",
+          "type": "StockMovement",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(\"MovementReversal\")"
+        }
+      ],
+      "constraints": [
+        "@@unique([companyId, idempotencyKey])",
+        "@@index([companyId, createdAt])",
+        "@@index([productId, createdAt])",
+        "@@index([userId, createdAt])",
+        "@@index([productId, warehouseId, createdAt])",
+        "@@index([deliveryNoteId])"
+      ]
+    },
+    "Customer": {
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "type",
+          "type": "CustomerType",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "companyName",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "contactName",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "taxIdentificationNumber",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "email",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "phone",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "active",
+          "type": "Boolean",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(true)"
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@updatedAt @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "addresses",
+          "type": "Address",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "stockMovements",
+          "type": "StockMovement",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "quotes",
+          "type": "Quote",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "invoices",
+          "type": "Invoice",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "deliveryNotes",
+          "type": "DeliveryNote",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "payments",
+          "type": "Payment",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        }
+      ],
+      "constraints": [
+        "@@index([companyId, active])",
+        "@@index([companyId, contactName])"
+      ]
+    },
+    "Address": {
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "customerId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "kind",
+          "type": "AddressKind",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "rawText",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@updatedAt @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "customer",
+          "type": "Customer",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [customerId], references: [id], onDelete: Cascade)"
+        }
+      ],
+      "constraints": [
+        "@@unique([customerId, kind])"
+      ]
+    },
+    "Quote": {
+      "fields": [
+        {
+          "name": "deliveryNote",
+          "type": "DeliveryNote",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "version",
+          "type": "Int",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(1)"
+        },
+        {
+          "name": "snapshot",
+          "type": "Json",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "snapshotHash",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "cancelledAt",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "cancellationReason",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "documentDiscountRate",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(5, 2)"
+        },
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "customerId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "createdById",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "number",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "internalRef",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@unique"
+        },
+        {
+          "name": "status",
+          "type": "QuoteStatus",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(DRAFT)"
+        },
+        {
+          "name": "issueDate",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "expiryDate",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "terms",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "subtotal",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "discountAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "taxAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "total",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@updatedAt @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "customer",
+          "type": "Customer",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [customerId], references: [id])"
+        },
+        {
+          "name": "createdBy",
+          "type": "User",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(\"QuoteCreatedBy\", fields: [createdById], references: [id])"
+        },
+        {
+          "name": "lines",
+          "type": "QuoteLine",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "invoice",
+          "type": "Invoice",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        }
+      ],
+      "constraints": [
+        "@@unique([companyId, number])",
+        "@@index([companyId, status, createdAt])",
+        "@@index([customerId, createdAt])"
+      ]
+    },
+    "QuoteLine": {
+      "fields": [
+        {
+          "name": "position",
+          "type": "Int",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "discountAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "documentDiscountAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "taxableAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "quoteId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "productId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "quantity",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "unit",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "unitPrice",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "discountRate",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(5, 2)"
+        },
+        {
+          "name": "taxRate",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(5, 2)"
+        },
+        {
+          "name": "subtotal",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "taxAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "total",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "quote",
+          "type": "Quote",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [quoteId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "product",
+          "type": "Product",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(fields: [productId], references: [id])"
+        }
+      ],
+      "constraints": [
+        "@@unique([quoteId, position])"
+      ]
+    },
+    "Invoice": {
+      "fields": [
+        {
+          "name": "version",
+          "type": "Int",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(1)"
+        },
+        {
+          "name": "snapshot",
+          "type": "Json",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "snapshotHash",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "cancelledAt",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "cancellationReason",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "documentDiscountRate",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(5, 2)"
+        },
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "customerId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "quoteId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": "@unique"
+        },
+        {
+          "name": "deliveryNoteId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": "@unique"
+        },
+        {
+          "name": "createdById",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "number",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "internalRef",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@unique"
+        },
+        {
+          "name": "status",
+          "type": "InvoiceStatus",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(DRAFT)"
+        },
+        {
+          "name": "issueDate",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "dueDate",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "terms",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "subtotal",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "discountAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "taxAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "total",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "paidAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "remainingAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@updatedAt @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "customer",
+          "type": "Customer",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [customerId], references: [id])"
+        },
+        {
+          "name": "quote",
+          "type": "Quote",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(fields: [quoteId], references: [id])"
+        },
+        {
+          "name": "deliveryNote",
+          "type": "DeliveryNote",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(fields: [deliveryNoteId], references: [id])"
+        },
+        {
+          "name": "createdBy",
+          "type": "User",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(\"InvoiceCreatedBy\", fields: [createdById], references: [id])"
+        },
+        {
+          "name": "lines",
+          "type": "InvoiceLine",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "payments",
+          "type": "Payment",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        }
+      ],
+      "constraints": [
+        "@@unique([companyId, number])",
+        "@@index([companyId, status, createdAt])",
+        "@@index([customerId, createdAt])"
+      ]
+    },
+    "InvoiceLine": {
+      "fields": [
+        {
+          "name": "position",
+          "type": "Int",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "discountAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "documentDiscountAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "taxableAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "invoiceId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "productId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "quantity",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "unit",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "unitPrice",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "discountRate",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(5, 2)"
+        },
+        {
+          "name": "taxRate",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(5, 2)"
+        },
+        {
+          "name": "subtotal",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "taxAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "total",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "invoice",
+          "type": "Invoice",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [invoiceId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "product",
+          "type": "Product",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(fields: [productId], references: [id])"
+        }
+      ],
+      "constraints": [
+        "@@unique([invoiceId, position])"
+      ]
+    },
+    "DeliveryNote": {
+      "fields": [
+        {
+          "name": "quoteId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": "@unique"
+        },
+        {
+          "name": "quote",
+          "type": "Quote",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(fields: [quoteId], references: [id])"
+        },
+        {
+          "name": "warehouseId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "warehouse",
+          "type": "Warehouse",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(fields: [warehouseId], references: [id])"
+        },
+        {
+          "name": "terms",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "version",
+          "type": "Int",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(1)"
+        },
+        {
+          "name": "snapshot",
+          "type": "Json",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "snapshotHash",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "cancelledAt",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "cancellationReason",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "documentDiscountRate",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(5, 2)"
+        },
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "customerId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "createdById",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "number",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "internalRef",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@unique"
+        },
+        {
+          "name": "status",
+          "type": "DeliveryNoteStatus",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(DRAFT)"
+        },
+        {
+          "name": "issueDate",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "deliveryDate",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "subtotal",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "discountAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "taxAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "total",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "stockDeductedAt",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@updatedAt @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "customer",
+          "type": "Customer",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [customerId], references: [id])"
+        },
+        {
+          "name": "createdBy",
+          "type": "User",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(\"DeliveryNoteCreatedBy\", fields: [createdById], references: [id])"
+        },
+        {
+          "name": "lines",
+          "type": "DeliveryNoteLine",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "stockMovements",
+          "type": "StockMovement",
+          "optional": false,
+          "array": true,
+          "attrs": ""
+        },
+        {
+          "name": "invoice",
+          "type": "Invoice",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        }
+      ],
+      "constraints": [
+        "@@unique([companyId, number])",
+        "@@index([companyId, status, createdAt])",
+        "@@index([customerId, createdAt])"
+      ]
+    },
+    "DeliveryNoteLine": {
+      "fields": [
+        {
+          "name": "position",
+          "type": "Int",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "discountAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "documentDiscountAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "taxableAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(14, 3)"
+        },
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "deliveryNoteId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "productId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "quantity",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "unit",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "unitPrice",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "discountRate",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(5, 2)"
+        },
+        {
+          "name": "taxRate",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0) @db.Decimal(5, 2)"
+        },
+        {
+          "name": "subtotal",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "taxAmount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "total",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "deliveryNote",
+          "type": "DeliveryNote",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [deliveryNoteId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "product",
+          "type": "Product",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(fields: [productId], references: [id])"
+        }
+      ],
+      "constraints": [
+        "@@unique([deliveryNoteId, position])"
+      ]
+    },
+    "Payment": {
+      "fields": [
+        {
+          "name": "idempotencyKey",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "cancellationReason",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "cancelledById",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "cancelledBy",
+          "type": "User",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(\"PaymentCancelledBy\", fields: [cancelledById], references: [id])"
+        },
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "customerId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "invoiceId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "receivedById",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "amount",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@db.Decimal(14, 3)"
+        },
+        {
+          "name": "method",
+          "type": "PaymentMethod",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "reference",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "paidAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "cancelledAt",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "customer",
+          "type": "Customer",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [customerId], references: [id])"
+        },
+        {
+          "name": "invoice",
+          "type": "Invoice",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [invoiceId], references: [id])"
+        },
+        {
+          "name": "receivedBy",
+          "type": "User",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(\"PaymentReceivedBy\", fields: [receivedById], references: [id])"
+        }
+      ],
+      "constraints": [
+        "@@unique([companyId, idempotencyKey])",
+        "@@index([companyId, paidAt])",
+        "@@index([invoiceId])"
+      ]
+    },
+    "DocumentSequence": {
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "documentType",
+          "type": "DocumentType",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "year",
+          "type": "Int",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "prefix",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "nextNumber",
+          "type": "Int",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(1)"
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@updatedAt @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id], onDelete: Cascade)"
+        }
+      ],
+      "constraints": [
+        "@@unique([companyId, documentType, year])"
+      ]
+    },
+    "FileAsset": {
+      "fields": [
+        {
+          "name": "logoForCompanies",
+          "type": "Company",
+          "optional": false,
+          "array": true,
+          "attrs": "@relation(\"CompanyLogo\")"
+        },
+        {
+          "name": "productImages",
+          "type": "Product",
+          "optional": false,
+          "array": true,
+          "attrs": "@relation(\"ProductImage\")"
+        },
+        {
+          "name": "snapshotHash",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "entityType",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "entityId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "storageKey",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@unique"
+        },
+        {
+          "name": "filename",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "mimeType",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "sizeBytes",
+          "type": "Int",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "checksum",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(\"CompanyAssets\", fields: [companyId], references: [id], onDelete: Cascade)"
+        }
+      ],
+      "constraints": [
+        "@@unique([companyId, entityType, entityId, snapshotHash])",
+        "@@index([companyId, entityType, entityId])"
+      ]
+    },
+    "AuditLog": {
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "actorId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "action",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "entityType",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "entityId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "requestId",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "ipAddress",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "before",
+          "type": "Json",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "after",
+          "type": "Json",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "reason",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id], onDelete: Cascade)"
+        },
+        {
+          "name": "actor",
+          "type": "User",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(fields: [actorId], references: [id])"
+        }
+      ],
+      "constraints": [
+        "@@index([companyId, createdAt])",
+        "@@index([companyId, entityType, entityId])"
+      ]
+    },
+    "BusinessSettings": {
+      "fields": [
+        {
+          "name": "taxRates",
+          "type": "Json",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(\"[\\\"0\\\",\\\"7\\\",\\\"13\\\",\\\"19\\\"]\")"
+        },
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@unique"
+        },
+        {
+          "name": "allowNegativeStock",
+          "type": "Boolean",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(false)"
+        },
+        {
+          "name": "quotePrefix",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(\"DEV\")"
+        },
+        {
+          "name": "invoicePrefix",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(\"FAC\")"
+        },
+        {
+          "name": "deliveryNotePrefix",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(\"BL\")"
+        },
+        {
+          "name": "defaultTaxRate",
+          "type": "Decimal",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(19) @db.Decimal(5, 2)"
+        },
+        {
+          "name": "documentDiscountEnabled",
+          "type": "Boolean",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(false)"
+        },
+        {
+          "name": "paymentTerms",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(\"Paiement a reception de la facture.\")"
+        },
+        {
+          "name": "footerText",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(\"Generated by AS TINO DEV\")"
+        },
+        {
+          "name": "updatedAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@updatedAt @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id], onDelete: Cascade)"
+        }
+      ],
+      "constraints": []
+    },
+    "IdempotencyRecord": {
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "actorId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "key",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "scope",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "requestHash",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "response",
+          "type": "Json",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id])"
+        },
+        {
+          "name": "actor",
+          "type": "User",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [actorId], references: [id])"
+        }
+      ],
+      "constraints": [
+        "@@unique([companyId, key])",
+        "@@index([companyId, createdAt])"
+      ]
+    },
+    "StockIncident": {
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "movementId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "reportedById",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "resolvedById",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "status",
+          "type": "IncidentStatus",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(OPEN)"
+        },
+        {
+          "name": "resolution",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "idempotencyKey",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "resolvedAt",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id])"
+        },
+        {
+          "name": "movement",
+          "type": "StockMovement",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [movementId], references: [id])"
+        },
+        {
+          "name": "reportedBy",
+          "type": "User",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(\"IncidentReporter\", fields: [reportedById], references: [id])"
+        },
+        {
+          "name": "resolvedBy",
+          "type": "User",
+          "optional": true,
+          "array": false,
+          "attrs": "@relation(\"IncidentResolver\", fields: [resolvedById], references: [id])"
+        }
+      ],
+      "constraints": [
+        "@@unique([companyId, idempotencyKey])",
+        "@@index([companyId, status, createdAt])"
+      ]
+    },
+    "MailOutbox": {
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": "@id @default(cuid())"
+        },
+        {
+          "name": "companyId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "documentType",
+          "type": "DocumentType",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "documentId",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "recipient",
+          "type": "String",
+          "optional": false,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "status",
+          "type": "MailStatus",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(PENDING)"
+        },
+        {
+          "name": "attempts",
+          "type": "Int",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(0)"
+        },
+        {
+          "name": "nextAttemptAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "lockedUntil",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "lastError",
+          "type": "String",
+          "optional": true,
+          "array": false,
+          "attrs": ""
+        },
+        {
+          "name": "createdAt",
+          "type": "DateTime",
+          "optional": false,
+          "array": false,
+          "attrs": "@default(now()) @db.Timestamptz(3)"
+        },
+        {
+          "name": "sentAt",
+          "type": "DateTime",
+          "optional": true,
+          "array": false,
+          "attrs": "@db.Timestamptz(3)"
+        },
+        {
+          "name": "company",
+          "type": "Company",
+          "optional": false,
+          "array": false,
+          "attrs": "@relation(fields: [companyId], references: [id])"
+        }
+      ],
+      "constraints": [
+        "@@index([status, nextAttemptAt])",
+        "@@index([companyId, documentType, documentId])"
+      ]
+    }
+  },
+  "counts": {
+    "models": 29,
+    "indexes": 63,
+    "foreignKeys": 63
+  }
+}

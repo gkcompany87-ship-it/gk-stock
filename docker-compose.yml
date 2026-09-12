@@ -1,0 +1,79 @@
+name: as-tino-stock
+services:
+  postgres:
+    image: postgres:18-bookworm
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?Run pnpm setup:env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run pnpm setup:env}
+      POSTGRES_DB: ${POSTGRES_DB:-as_tino_stock}
+      TZ: Africa/Tunis
+    ports: ["127.0.0.1:5432:5432"]
+    volumes: ["postgres_data:/var/lib/postgresql"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  postgres-test:
+    profiles: ["test"]
+    image: postgres:18-bookworm
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?Run pnpm setup:env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run pnpm setup:env}
+      POSTGRES_DB: as_tino_stock_test
+    ports: ["127.0.0.1:5433:5432"]
+    volumes: ["postgres_test_data:/var/lib/postgresql"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d as_tino_stock_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  redis:
+    image: redis:8
+    command: ["redis-server", "--appendonly", "yes"]
+    ports: ["127.0.0.1:6379:6379"]
+    volumes: ["redis_data:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  minio:
+    build: {context: ., dockerfile: infrastructure/minio/Dockerfile}
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID:?Run pnpm setup:env}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:?Run pnpm setup:env}
+    ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
+    volumes: ["minio_data:/data"]
+  storage-init:
+    image: amazon/aws-cli:2
+    depends_on:
+      minio: {condition: service_healthy}
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:?Run pnpm setup:env}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:?Run pnpm setup:env}
+      AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
+      AWS_EC2_METADATA_DISABLED: "true"
+      S3_BUCKET: ${S3_BUCKET:-as-tino-stock}
+      TEST_S3_BUCKET: ${TEST_S3_BUCKET:-as-tino-stock-test}
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        for bucket in "$$S3_BUCKET" "$$TEST_S3_BUCKET"; do
+          aws --endpoint-url http://minio:9000 s3api head-bucket --bucket "$$bucket" 2>/dev/null || aws --endpoint-url http://minio:9000 s3api create-bucket --bucket "$$bucket"
+          aws --endpoint-url http://minio:9000 s3api put-bucket-versioning --bucket "$$bucket" --versioning-configuration Status=Enabled
+        done
+    restart: "no"
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+volumes:
+  postgres_data:
+  postgres_test_data:
+  redis_data:
+  minio_data:

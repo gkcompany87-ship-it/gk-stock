@@ -1,0 +1,11 @@
+import { spawnSync } from "node:child_process";
+import { mkdirSync, writeFileSync } from "node:fs";
+const out = ".local/offline-build";
+mkdirSync(out, { recursive: true });
+writeFileSync(`${out}/package.json`, '{"type":"module"}');
+const files = ["money", "stock", "permissions", "status"].map(name => `packages/shared/src/${name}.ts`);
+const compile = spawnSync("tsc", [...files, "--outDir", out, "--target", "ES2022", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--strict", "--noUncheckedIndexedAccess", "--skipLibCheck"], { encoding: "utf8" });
+process.stdout.write(compile.stdout ?? ""); process.stderr.write(compile.stderr ?? "");
+if (compile.status !== 0) process.exit(compile.status ?? 1);
+const result = spawnSync(process.execPath, ["--test", "tests/offline/domain.test.mjs"], { stdio: "inherit" });
+process.exit(result.status ?? 1);

@@ -1,0 +1,7 @@
+{
+  "schema_models": 29,
+  "created_tables": 29,
+  "missing_tables": [],
+  "unexpected_tables": [],
+  "note": "Structural text comparison only; PostgreSQL execution and Prisma validation are BLOCKED."
+}

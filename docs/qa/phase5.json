@@ -1,0 +1,21 @@
+{
+  "phase": "phase5",
+  "node": "v22.16.0",
+  "outcomes": [
+    {
+      "command": "pnpm lint",
+      "status": "BLOCKED: executable unavailable",
+      "exitCode": null
+    },
+    {
+      "command": "pnpm typecheck",
+      "status": "BLOCKED: executable unavailable",
+      "exitCode": null
+    },
+    {
+      "command": "pnpm test:unit",
+      "status": "BLOCKED: executable unavailable",
+      "exitCode": null
+    }
+  ]
+}

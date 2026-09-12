@@ -1,0 +1,10 @@
+import { it,expect } from "vitest";
+import { calculateDocument,calculatePayment,scaled } from "../src/money.js";
+import { csvRow } from "../src/csv.js";
+import { createProductSchema,documentSchema,positiveQuantitySchema } from "../src/schemas.js";
+it("adds multi-line tax without the original weighted-tax bug",()=>{const d=calculateDocument({lines:[{quantity:"1",unitPrice:"100",taxRate:"19"},{quantity:"1",unitPrice:"100",taxRate:"19"}]});expect(d.taxAmount).toBe("38.000");expect(d.total).toBe("238.000");});
+it("allocates global discounts to the last millime",()=>{for(let i=1;i<100;i++){const d=calculateDocument({documentDiscountRate:String(i),lines:["7","13","19"].map(taxRate=>({quantity:"1.333",unitPrice:"0.011",taxRate}))});expect(d.lines.reduce((v,l)=>v+scaled(l.documentDiscountAmount),0n)).toBe(scaled(d.documentDiscountAmount));expect(d.lines.reduce((v,l)=>v+scaled(l.total),0n)).toBe(scaled(d.total));}});
+it("rejects overflow even when the final total is fully discounted",()=>{expect(()=>calculateDocument({documentDiscountRate:"100",lines:[{quantity:"1",unitPrice:"99999999999.999"},{quantity:"1",unitPrice:"1"}]})).toThrow();});
+it("rejects floating-point money, zero quantities and mass assignment",()=>{expect(positiveQuantitySchema.safeParse("0").success).toBe(false);expect(createProductSchema.safeParse({sku:"A",name:"Valid",purchasePrice:0.1,sellingPrice:"1",companyId:"another-company"}).success).toBe(false);expect(documentSchema.safeParse({customerId:"c",total:"0",lines:[]}).success).toBe(false);});
+it("prevents overpayment",()=>{expect(calculatePayment("1.001","1.000","0.001").status).toBe("PAID");expect(()=>calculatePayment("1","0.999","0.002")).toThrow();});
+it("neutralizes spreadsheet formulas while quoting CSV fields",()=>{const row=csvRow(['=HYPERLINK("bad")',"safe;cell","line\nvalue"]);expect(row).toContain("'=HYPERLINK");expect(row).toContain('"safe;cell"');});
