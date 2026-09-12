@@ -40,6 +40,14 @@ export const customerSchema = z.object({
   billingAddress: z.string().trim().max(2000).optional(), deliveryAddress: z.string().trim().max(2000).optional(),
   notes: z.string().trim().max(4000).optional(), active: z.boolean().optional()
 }).strict().refine(input => input.type !== "COMPANY" || !!input.companyName?.trim(), "La raison sociale est requise.");
+export const customerAdjustmentSchema = z.object({
+  direction: z.enum(["CUSTOMER_OWES_US", "WE_OWE_CUSTOMER"]),
+  amount: positiveQuantitySchema,
+  reason: z.string().trim().min(3).max(1000),
+  effectiveAt: z.coerce.date().optional(),
+  idempotencyKey: idempotencyKeySchema
+}).strict();
+
 export const documentLineSchema = z.object({
   productId: idSchema.optional(), description: z.string().trim().min(1).max(2000),
   quantity: positiveQuantitySchema, unit: z.string().trim().min(1).max(30), unitPrice: moneyStringSchema,

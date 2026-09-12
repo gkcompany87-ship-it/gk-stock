@@ -9,7 +9,19 @@ export type Product = {
   location?: string | null; status: string; imageAssetId?: string | null; imageUrl?: string | null;
   categoryId?: string | null; category?: Category | null; balances: StockBalance[];
 };
-export type Customer = { id: string; type: "COMPANY" | "INDIVIDUAL"; companyName?: string | null; contactName: string; taxIdentificationNumber?: string | null; email?: string | null; phone?: string | null; notes?: string | null; active: boolean; addresses?: { id: string; kind: string; rawText: string }[] };
+export type CustomerFinancialStatus = "UP_TO_DATE" | "PENDING" | "OVERDUE" | "CREDIT";
+export type CustomerFinancialSummary = { balance: string; overdueAmount: string; unpaidCount: number; status: CustomerFinancialStatus };
+export type CustomerAdjustment = { id: string; direction: "CUSTOMER_OWES_US" | "WE_OWE_CUSTOMER"; amount: string; reason: string; effectiveAt: string; createdAt: string; createdBy?: { id: string; name: string } | null };
+export type CustomerFinancialDetails = CustomerFinancialSummary & {
+  totalInvoiced: string;
+  totalPaid: string;
+  adjustmentsNet: string;
+  lastPaymentAt?: string | null;
+  openInvoices: { id: string; number?: string | null; internalRef: string; status: string; issueDate?: string | null; dueDate?: string | null; total: string; paidAmount: string; remainingAmount: string }[];
+  recentPayments: { id: string; amount: string; method: string; reference?: string | null; paidAt: string; invoice: { id: string; number?: string | null; internalRef: string } }[];
+  adjustments: CustomerAdjustment[];
+};
+export type Customer = { id: string; type: "COMPANY" | "INDIVIDUAL"; companyName?: string | null; contactName: string; taxIdentificationNumber?: string | null; email?: string | null; phone?: string | null; notes?: string | null; active: boolean; addresses?: { id: string; kind: string; rawText: string }[]; financial?: CustomerFinancialSummary };
 export type StockMovement = { id: string; type: string; quantity: string; quantityBefore: string; quantityAfter: string; note?: string | null; createdAt: string; userId: string; deliveryNoteId?: string | null; reversedMovementId?: string | null; reversalMovement?: { id: string } | null; product: Product; user?: { id: string; name: string; email?: string } | null; warehouse?: { id: string; name: string } | null };
 export type DocumentLine = { id?: string; productId?: string | null; description: string; quantity: string; unit: string; unitPrice: string; discountRate: string; taxRate: string; subtotal: string; taxAmount: string; total: string };
 export type CommercialDocument = { id: string; number?: string | null; internalRef: string; version: number; status: string; effectiveStatus?: string; customerId: string; warehouseId?: string; issueDate?: string | null; dueDate?: string | null; total: string; subtotal: string; discountAmount: string; documentDiscountRate: string; taxAmount: string; paidAmount?: string; remainingAmount?: string; createdAt: string; updatedAt: string; customer: Customer; lines: DocumentLine[]; notes?: string | null; terms?: string | null; cancellationReason?: string | null; payments?: Payment[] };

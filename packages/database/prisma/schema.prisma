@@ -33,6 +33,11 @@ enum CustomerType {
   INDIVIDUAL
 }
 
+enum CustomerAdjustmentDirection {
+  CUSTOMER_OWES_US
+  WE_OWE_CUSTOMER
+}
+
 enum AddressKind {
   BILLING
   DELIVERY
@@ -109,6 +114,7 @@ model Company {
   invoices                Invoice[]
   deliveryNotes           DeliveryNote[]
   payments                Payment[]
+  customerAdjustments     CustomerAdjustment[]
   documentSequences       DocumentSequence[]
   fileAssets              FileAsset[] @relation("CompanyAssets")
   auditLogs               AuditLog[]
@@ -141,6 +147,7 @@ model User {
   invoicesCreated    Invoice[]        @relation("InvoiceCreatedBy")
   deliveryNotesMade  DeliveryNote[]   @relation("DeliveryNoteCreatedBy")
   paymentsReceived   Payment[]        @relation("PaymentReceivedBy")
+  customerAdjustmentsCreated CustomerAdjustment[] @relation("CustomerAdjustmentCreatedBy")
   auditLogs          AuditLog[]
 
   @@unique([companyId, email])
@@ -352,9 +359,29 @@ model Customer {
   invoices                Invoice[]
   deliveryNotes           DeliveryNote[]
   payments                Payment[]
+  adjustments             CustomerAdjustment[]
 
   @@index([companyId, active])
   @@index([companyId, contactName])
+}
+
+model CustomerAdjustment {
+  id             String                      @id @default(cuid())
+  companyId      String
+  customerId     String
+  createdById    String
+  direction      CustomerAdjustmentDirection
+  amount         Decimal                     @db.Decimal(14, 3)
+  reason         String
+  effectiveAt    DateTime                    @default(now()) @db.Timestamptz(3)
+  idempotencyKey String
+  createdAt      DateTime                    @default(now()) @db.Timestamptz(3)
+  company        Company                     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer       Customer                    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  createdBy      User                        @relation("CustomerAdjustmentCreatedBy", fields: [createdById], references: [id])
+
+  @@unique([companyId, idempotencyKey])
+  @@index([companyId, customerId, effectiveAt])
 }
 
 model Address {
