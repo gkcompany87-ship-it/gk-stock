@@ -4,6 +4,7 @@ import {
   ServiceUnavailableException
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { readFile } from "node:fs/promises";
 import { chromium, type Browser } from "playwright-core";
 import type { DocumentSnapshot } from "../documents/document-types.js";
 import { documentFooter, documentHtml } from "./document-template.js";
@@ -11,6 +12,7 @@ import { documentFooter, documentHtml } from "./document-template.js";
 @Injectable()
 export class PdfService implements OnModuleDestroy {
   private browser?: Promise<Browser>;
+  private logoDataUri?: Promise<string | undefined>;
   private active = 0;
 
   constructor(private readonly config: ConfigService) {}
@@ -26,7 +28,8 @@ export class PdfService implements OnModuleDestroy {
       this.browser = chromium
         .launch({
           executablePath,
-          chromiumSandbox: this.config.get("PDF_DISABLE_SANDBOX") !== "true",
+          chromiumSandbox:
+            this.config.get("PDF_DISABLE_SANDBOX") !== "true",
           args: [
             "--disable-dev-shm-usage",
             "--no-sandbox",
@@ -50,6 +53,21 @@ export class PdfService implements OnModuleDestroy {
     return browser;
   }
 
+  private async getDefaultLogoDataUri(): Promise<string | undefined> {
+    if (!this.logoDataUri) {
+      this.logoDataUri = readFile(
+        new URL("../../../../STE-GK-DE-COMMERCE-logo.png", import.meta.url)
+      )
+        .then(buffer => `data:image/png;base64,${buffer.toString("base64")}`)
+        .catch(error => {
+          console.error("PDF logo load failed:", error);
+          return undefined;
+        });
+    }
+
+    return this.logoDataUri;
+  }
+
   async render(
     doc: DocumentSnapshot,
     options: Parameters<typeof documentHtml>[1] = {}
@@ -64,6 +82,9 @@ export class PdfService implements OnModuleDestroy {
 
     try {
       const browser = await this.getBrowser();
+
+      const logoDataUri =
+        options.logoDataUri ?? (await this.getDefaultLogoDataUri());
 
       const context = await browser.newContext({
         javaScriptEnabled: false,
@@ -86,10 +107,16 @@ export class PdfService implements OnModuleDestroy {
 
         const page = await context.newPage();
 
-        await page.setContent(documentHtml(doc, options), {
-          waitUntil: "load",
-          timeout: 15_000
-        });
+        await page.setContent(
+          documentHtml(doc, {
+            ...options,
+            logoDataUri
+          }),
+          {
+            waitUntil: "load",
+            timeout: 15_000
+          }
+        );
 
         return await page.pdf({
           format: "A4",
