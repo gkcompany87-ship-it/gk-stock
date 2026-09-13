@@ -11,7 +11,33 @@ import { PdfService } from "./pdf.service.js";
 import { FileStorageService } from "./file-storage.service.js";
 @Injectable()
 export class DocumentPdfService {
-  constructor(private readonly prisma: PrismaService, private readonly documents: DocumentsService, private readonly renderer: PdfService, private readonly storage: FileStorageService) {}
+  private readonly draftCache = new Map<
+    string,
+    { buffer: Buffer; expiresAt: number }
+  >();
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly documents: DocumentsService,
+    private readonly renderer: PdfService,
+    private readonly storage: FileStorageService
+  ) {}
+
+  private cleanupDraftCache() {
+    const now = Date.now();
+
+    for (const [key, value] of this.draftCache) {
+      if (value.expiresAt <= now) {
+        this.draftCache.delete(key);
+      }
+    }
+
+    while (this.draftCache.size > 25) {
+      const oldest = this.draftCache.keys().next().value as string | undefined;
+      if (!oldest) break;
+      this.draftCache.delete(oldest);
+    }
+  }
   async forActor(actor: AuthenticatedUser, type: DocumentType, id: string, original = false) {
     assertCan(actor, Permissions.DocumentManage); assertCan(actor, Permissions.FinancialRead);
     return this.render(actor.companyId, type, id, original);
@@ -31,8 +57,47 @@ export class DocumentPdfService {
     const doc = await this.documents.load(this.prisma, type, companyId, id);
     const draft = !doc.snapshot;
     if (draft) {
-      const snapshot = await this.documents.snapshot(this.prisma, type, doc, doc.internalRef, doc.issueDate ?? new Date());
-      return { buffer: await this.renderer.render(snapshot, { logoDataUri: await this.logo(companyId, snapshot.company.logoAssetId), watermark: "BROUILLON - NON EMIS" }), filename: `BROUILLON-${id}.pdf` };
+      const snapshot = await this.documents.snapshot(
+        this.prisma,
+        type,
+        doc,
+        doc.internalRef,
+        doc.issueDate ?? new Date()
+      );
+
+      const snapshotHash = digest(canonical(snapshot));
+      const cacheKey = `${companyId}:${type}:${id}:${snapshotHash}`;
+
+      this.cleanupDraftCache();
+
+      const cached = this.draftCache.get(cacheKey);
+
+      if (cached && cached.expiresAt > Date.now()) {
+        return {
+          buffer: cached.buffer,
+          filename: `BROUILLON-${id}.pdf`
+        };
+      }
+
+      const logoDataUri = await this.logo(
+        companyId,
+        snapshot.company.logoAssetId
+      );
+
+      const buffer = await this.renderer.render(snapshot, {
+        logoDataUri,
+        watermark: "BROUILLON - NON EMIS"
+      });
+
+      this.draftCache.set(cacheKey, {
+        buffer,
+        expiresAt: Date.now() + 5 * 60_000
+      });
+
+      return {
+        buffer,
+        filename: `BROUILLON-${id}.pdf`
+      };
     }
     const snapshot = doc.snapshot as unknown as DocumentSnapshot;
     if (!doc.snapshotHash || digest(canonical(snapshot)) !== doc.snapshotHash) throw new ConflictException("Integrite de l'instantane non verifiee.");
